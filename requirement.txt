@@ -40,3 +40,9 @@ faiss-cpu
 wikipedia
 duckduckgo-search
 arxiv
+
+streamlit
+langchain-google-genai
+pydantic
+python-dotenv
+requests
