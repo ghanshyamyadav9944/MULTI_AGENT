@@ -1,5 +1,7 @@
 
 
+
+
 import os
 import uvicorn
 from fastapi import FastAPI
@@ -21,33 +23,24 @@ llm = ChatGoogleGenerativeAI(
     temperature=0.2,
     google_api_key=os.getenv("GOOGLE_API_KEY"),
 )
-
-@app.get("/health")
-def health():
-    return {"status": "healthy"}
-
 @app.post("/run")
 def run_agents(data: QueryRequest):
-    research = llm.invoke(f"Research this topic briefly:\n{data.query}")
-    summary = llm.invoke(f"Summarize this in 100–150 words:\n{research.content}")
-    email = llm.invoke(f"Write a professional email based on this summary:\n{summary.content}")
+    # Agent 1: Research
+    research = llm.invoke(f"Research: {data.query}")
+    # Agent 2: Critic
+    critic = llm.invoke(f"Critique this research: {research.content}")
+    # Agent 3: Summary
+    summary = llm.invoke(f"Summarize: {research.content} taking into account: {critic.content}")
+    # Agent 4: Email
+    email = llm.invoke(f"Draft email: {summary.content}")
 
-    final_output = f"""
-### 🔍 Research Findings
-{research.content}
+    return {
+        "research": research.content,
+        "critic": critic.content,
+        "summary": summary.content,
+        "email": email.content,
+        "status": "success"
+    }
 
----
 
-### 📝 Summary
-{summary.content}
 
----
-
-### 📧 Professional Email
-{email.content}
-    """
-    return {"result": final_output, "status": "success"}
-
-if __name__ == "__main__":
-    # Internal cloud networking works best on 0.0.0.0
-    uvicorn.run(app, host="0.0.0.0", port=8080)
